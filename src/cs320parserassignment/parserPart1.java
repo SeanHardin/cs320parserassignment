@@ -1,8 +1,7 @@
 //============================================================================
-// Name        : Assignment1 part 1
+// Name        : ParserPart1
 // Author      : Sean Hardin
 // Date        : 1/14/18
-// Copyright   : Your copyright notice
 // Description : Assignment 1 for cs320, parses a given .java file for variables.
 // intellij would not let me run anything with the errors in the file so i moved to eclipse.
 //============================================================================

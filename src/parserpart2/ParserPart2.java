@@ -1,3 +1,7 @@
+// ParserPart2.java
+// Sean Hardin
+//1/22/18
+// parses BC class page for programs and class information as prompted by user
 package parserpart2;
 
 import java.io.BufferedReader;
@@ -10,96 +14,87 @@ import java.util.regex.Pattern;
 
 public class ParserPart2 {
 	public static void main(String[] args) throws IOException {
-		String tentativeURL = "https://www.bellevuecollege.edu/classes/";
-		String temp = "";
+		String tentativeURL = "https://www.bellevuecollege.edu/classes/";//many while loops used
+		String temp = "";//so initializing variables I use out here
 		String storage = "";
 		String quarter = "";
 		String year = "";
 		String program = "";
-		boolean invalid = false;//true;
-		temp = "winter";
-		Scanner sc = new Scanner(System.in);
+		BufferedReader in;
+		URL url;
+		String text = "";
+		String input = "";
+		boolean invalid = true;//used to move through while loops
+		Scanner sc = new Scanner(System.in);//take user input
 		while (invalid){
-			System.out.println("Enter quarter:");
+			System.out.println("Enter quarter:");//ask for quarter
 			temp = sc.nextLine();
 			invalid = !StringValidator.onlyLetters(temp);
 			if (invalid)
-				System.out.println("Error: must have letters only.");
+				System.out.println("Error: must have letters only.");//print error if invalid input
 		}
-		quarter = temp;
-		tentativeURL += temp;
-		System.out.println(temp);
-		//deletestorage += temp;
-		//invalid = true;
-		temp = "2017";
+		quarter = temp;//store for later
+		tentativeURL += temp;//add to the url for parsing
+		invalid = true;
 		while (invalid){
-			System.out.println("Enter year:");
+			System.out.println("Enter year:");//ask for year
 			temp = sc.nextLine();
 			invalid = !StringValidator.onlyNumbers(temp);
 			if (invalid)
 				System.out.println("Error: must have numbers only.");
 		}
-		year = temp;
-		tentativeURL += temp;
-		//deletestorage += temp;
-		System.out.println(temp);
-		//invalid = true;
-		char temp2 = 'C';
-		while (invalid){
-			System.out.println("Enter the initial for the program:");
-			temp = sc.nextLine();
-			invalid = !StringValidator.lengthCheck(temp, 1)||!StringValidator.onlyLetters(temp);
-			if (invalid)
-				System.out.println("Error: must be a single letter only.");
-		}
-		if (temp.charAt(0) >= 'a' && temp.charAt(0) <= 'z')
-			temp = temp.toUpperCase();
-		//temp2 = temp;
-		System.out.println(temp2);
-		System.out.println();
-	
-		URL url = new URL(tentativeURL);
-		BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
-		String input = "";
-		String text = "";
-		while ((input=in.readLine())!=null){
-			text += input + '\n';
-		}
-		//System.out.println(text);
-		//System.out.println(text.indexOf("<h2 class=\"subject-letter\">" + temp2));
-		//System.out.println((char)(temp2 + 1));
-		//System.out.println(text.indexOf("<h2 class=\"subject-letter\">" + (char)(temp2 + 1)));
-		//System.out.println(text.length());
-		if (temp2 == 'z' || temp2 == 'Z')
-			text = text.substring(text.indexOf("<h2 class=\"subject-letter\">" + temp2),
-					text.indexOf("Edit Subject Information"));
-		else
-			text = text.substring(text.indexOf("<h2 class=\"subject-letter\">" + temp2), 
-					text.indexOf("<h2 class=\"subject-letter\">" + (char)(temp2 + 1)));
-		//System.out.println(text);
+		year = temp;//store for later
+		tentativeURL += temp;//appends to url
+		invalid = true;
+		char temp2 = 'A';//initialize character
+		while (invalid){//loop to account for unused character being selected
+			while (invalid){
+				System.out.println("Enter the initial for the program:");//ask for program initial
+				temp = sc.nextLine();
+				invalid = !StringValidator.lengthCheck(temp, 1) || !StringValidator.onlyLetters(temp);
+				if (invalid)//if more than character, or non letter then give error
+					System.out.println("Error: must be a single letter only.");
+			}
+			if (temp.charAt(0) >= 'a' && temp.charAt(0) <= 'z')//if lowercase
+				temp = temp.toUpperCase();//capitalizes it.
+			temp2 = temp.charAt(0);//stores as character
+			System.out.println();
+			url = new URL(tentativeURL);//initialize parser to take webpage info
+			in = new BufferedReader(new InputStreamReader(url.openStream()));
+			text = "";
+			while ((input=in.readLine()) != null){//store all html into string
+				text += input + '\n';
+			}
+			invalid = text.indexOf("class=\"subject-letter\">" + temp2) < 0;
+			if (invalid)//if section for given letter isn't found
+				System.out.println("selected letter not found. please try again.");
+		}//close while loop, character selection successful
+		text = text.substring(text.indexOf("class=\"subject-letter\">" + temp2));//shorten string to parse
+		if (text.indexOf("<h2 class=\"subject-letter\">") < 0)//if no other letter after
+			text = text.substring(0, text.indexOf("Edit Subject Information"));
+		else//if letter after, just more shortening to make regex easier
+			text = text.substring(0, text.indexOf("<h2 class=\"subject-letter\">"));
 		Pattern p = Pattern.compile("<a href=\"/classes/.+/.+\">(.+)</a>([^\n]+)");
-		Matcher m = p.matcher(text);
+		Matcher m = p.matcher(text);//matches program names and the acronyms in parenthesis
 		System.out.println("Programs:");
 		while (m.find()){//for every match found
-        	System.out.print(m.group(1));
-        	System.out.println(m.group(2));
-        }
-		temp = "computer science";
+			System.out.print(m.group(1));
+			System.out.println(m.group(2));
+		}
 		invalid = true;
 		while (invalid){
 			storage = "";
 			System.out.println();
 			System.out.println("Enter the program's name:");
-			//sc.reset();
-			//temp = sc.nextLine();
-			storage = StringValidator.capitalizeWords(temp);
-			//System.out.println(temp);
-			//System.out.println(storage);
-			invalid = !StringValidator.onlyLetters(storage);
+			temp = sc.nextLine();
+			//storage = StringValidator.capitalizeWords(temp);
+			//used to make it easy on myself, but doesn't work on cases with non capitalized words like Translation and Interpretation
+			storage = temp;//since the above line got commented out
+			invalid = false;//!StringValidator.onlyLetters(storage);
 			if (invalid){
 				System.out.println("Error: only enter program name. ie. for Accounting (ACCT) just type 'accounting'");	
 			} else {
-				p = Pattern.compile(storage + ".*?</a>\\s[(](\\w+)[,)]");
+				p = Pattern.compile(storage + ".*?</a>\\s[(](\\w+)[,)]");//finds program acronym for url
 				m = p.matcher(text);
 				invalid = !m.find();
 				if (invalid){
@@ -107,84 +102,88 @@ public class ParserPart2 {
 				}
 			}
 		}
-		program = storage;
-		//System.out.println(m.group(1));
-		tentativeURL += "/" + m.group(1);
+		program = storage;//store for later
+		tentativeURL += "/" + m.group(1);//change url for selected program
 		url = new URL(tentativeURL);
 		in = new BufferedReader(new InputStreamReader(url.openStream()));
 		input = "";
 		text = "";
-		while ((input=in.readLine())!=null){
+		while ((input=in.readLine())!=null){//take new html lines
 			text += input + '\n';
 		}
-		text = text.substring(0,text.indexOf("<div id=\"classes-footer\""));
-		//System.out.println(text);
+		text = text.substring(0, text.indexOf("<div id=\"classes-footer\""));//shorten string again
 		invalid = true;
 		while (invalid){
 			System.out.println();
 			System.out.println("Enter the course ID:");
-			//sc.reset();
-			temp = "CS 351";
-			//temp = sc.nextLine();
-			storage = temp.toUpperCase();
-			if (text.indexOf(storage) >= 0){
-				temp = text.substring(text.indexOf(storage));
+			temp = sc.nextLine();//not worried about ampersands.
+			storage = temp.toUpperCase();//since case sensitive
+			if (text.indexOf(storage) >= 0){//if class found
+				temp = text.substring(text.indexOf(storage));//moving string to temp in case match not found
 				if (temp.indexOf("<h2 class=\"classHeading\">") >= 0)
-					temp = temp.substring(0, temp.indexOf("<h2 class=\"classHeading\">") + 30);
-				//System.out.println(temp);
-				//System.out.println(storage);
+					temp = temp.substring(0, temp.indexOf("<h2 class=\"classHeading\">") + 30);//shortening
 				String cTitle = "";
 				p = Pattern.compile(storage + "</span> <span class=\"courseTitle\">(.*)</span>");
-				m = p.matcher(temp);
+				m = p.matcher(temp);//finds course title
 				if (m.find()){//if found, then there is valid entry and program will complete.
-					cTitle = m.group(1);
-					//System.out.println(cTitle);
+					cTitle = m.group(1);//store for later
 					p = Pattern.compile("Item number: </span>(.+)</span>[^;]+?a href=.+>(.+)</a>");
-					m = p.matcher(temp);
-					//System.out.println("entering m.find()");
-					//invalid = false;//GET RID OF THIS LATER, JUST TO STOP CONSOLE SPAM
-					while (m.find()){
+					m = p.matcher(temp);//find item number and teacher... dont use teacher anymore but not deleting in case it breaks something
+					while (m.find()){//for every offering found
 						if (invalid){
-							System.out.println();
-							System.out.println(program + " Courses in " + quarter + " " + year);
+							System.out.println();//formatting
+							System.out.println(program + " Courses in " + quarter + " " + year);//prints based on user input
 							System.out.println("====================================================================");
 						}
-						System.out.println("Course Code: " + storage);
-						System.out.println("Item Number: " + m.group(1));
-						System.out.println("Course Title: " + cTitle);
-						System.out.println("Instructor: " + m.group(2));
-						System.out.print("Class Times: ");//days + times + room
-						text = temp.substring(temp.indexOf(m.group(1)));
-						if (text.indexOf("<!-- SEARCHTERM:  -->") >= 0)
-							text = text.substring(0, text.indexOf("<!-- SEARCHTERM:  -->"));
-						else
-							if (text.indexOf("<h2 class=\"classHeading\">") >= 0)
-								text = text.substring(0, text.indexOf("<h2 class=\"classHeading\">"));
-						Pattern p2 = Pattern.compile("<span class=\"days\">\\s*<abbr title=\"(.+)\">[^;]+?at </span>(.+)\\s[^;]+?in </span>(.+)\\s|<span class=\"days online\">(.+)</span>");//NEED THIS STILL
-						Matcher m2 = p2.matcher(text);//reusing text since its not being used anymore?
-						int n = 0;
+						System.out.println("Course Code: " + storage);//first piece
+						System.out.println("Item Number: " + m.group(1));//found item number
+						System.out.println("Course Title: " + cTitle);//from previous parser
+						System.out.print("Instructor(s): ");//in case of multiple
+						text = temp.substring(temp.indexOf(m.group(1)));//by this point the regex went through so no longer need to keep text string
+						text = text.substring(0, text.indexOf("Meets:"));//shorten text to include only teacher data
+						Pattern p2 = Pattern.compile("a href=.+>(.+)</a>");//find all teacher names
+						Matcher m2 = p2.matcher(text);
+						int n = 0;//for formatting
 						while (m2.find()){
-							if (m2.group(4) != null)
+							if (n > 0)
+								System.out.print("               ");//only print with 2+ teachers
+							System.out.println(m2.group(1));//prints teacher name
+							n++;//increment
+						}
+						System.out.print("Class Times: ");//in case multiple times
+						text = temp.substring(temp.indexOf(m.group(1)));//reusing text again, cuts off at item number
+						if (text.indexOf("<!-- SEARCHTERM:  -->") >= 0)//if this is found, cuts it off
+							text = text.substring(0, text.indexOf("<!-- SEARCHTERM:  -->"));
+						else if (text.indexOf("<h2 class=\"classHeading\">") >= 0)//if this is found cuts it off
+								text = text.substring(0, text.indexOf("<h2 class=\"classHeading\">"));
+						p2 = Pattern.compile("<span class=\"days\">\\s*<abbr title=\"(.+)\">[^;]+?at </span>(.+)\\s[^;]+?in </span>(.+)\\s|"
+						+ "<span class=\"days online\">(.+)</span>");//finds days, times and room for each item
+						m2 = p2.matcher(text);
+						n = 0;
+						while (m2.find()){
+							if (m2.group(4) != null)//if class is online
 								System.out.println(m2.group(4));
 							else {
 								if (n > 0)
 									System.out.print("             ");
-								System.out.println(m2.group(1) + " at " + m2.group(2) + " in " + m2.group(3));
+								if (m2.group(1).equals("Arranged"))//if class is arranged
+									System.out.println(m2.group(1));
+								else//normal classes print all 3
+									System.out.println(m2.group(1) + " at " + m2.group(2) + " in " + m2.group(3));
 								n++;
 							}
 						}
 						System.out.println("====================================================================");
 						invalid = false;
 					}
-				} else {
+				} else {//pattern couldn't find course
 					System.out.println("selected course not found, please type it again.");
 				}
-			} else {
+			} else {//if class not found
 				System.out.println("selected course not found, please type it again.");
 			}
 		}
-		
-		
+		System.out.println("successful");
 		sc.close();
 	}
 }
